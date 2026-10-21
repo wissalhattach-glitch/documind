@@ -1,10 +1,13 @@
 package com.documind.backend.service;
 
 import com.documind.backend.entity.Document;
+import com.documind.backend.exception.DocumentIntrouvableException;
 import com.documind.backend.exception.FichierInvalideException;
 import com.documind.backend.repository.DocumentRepository;
 import com.documind.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,6 +47,17 @@ public class DocumentService {
             storageService.supprimer(nomStocke);
             throw e;
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Document> lister(Long userId, Pageable pageable) {
+        return documentRepository.findByUserId(userId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Document trouver(Long id, Long userId) {
+        return documentRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(DocumentIntrouvableException::new);
     }
 
     // un vrai PDF commence toujours par "%PDF-"

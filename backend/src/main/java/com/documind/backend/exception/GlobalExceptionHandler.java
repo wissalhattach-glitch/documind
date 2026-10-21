@@ -45,4 +45,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
                 .body(new ErrorResponse(413, "FILE_TOO_LARGE", "Fichier trop volumineux (50 Mo maximum)"));
     }
+    @ExceptionHandler(DocumentIntrouvableException.class)
+    public ResponseEntity<ErrorResponse> documentIntrouvable() {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(404, "DOCUMENT_NOT_FOUND", "Document introuvable"));
+    }
 }
