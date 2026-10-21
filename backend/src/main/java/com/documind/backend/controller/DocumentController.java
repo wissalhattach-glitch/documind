@@ -39,4 +39,11 @@ public class DocumentController {
                                     @AuthenticationPrincipal Long userId) {
         return DocumentResponse.de(documentService.trouver(id, userId));
     }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void supprimer(@PathVariable Long id,
+                          @AuthenticationPrincipal Long userId) {
+        documentService.supprimer(id, userId);
+    }
 }

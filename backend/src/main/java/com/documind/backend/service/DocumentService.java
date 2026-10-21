@@ -60,6 +60,17 @@ public class DocumentService {
                 .orElseThrow(DocumentIntrouvableException::new);
     }
 
+    @Transactional
+    public void supprimer(Long id, Long userId) {
+        Document document = documentRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(DocumentIntrouvableException::new);
+
+        documentRepository.delete(document);
+        documentRepository.flush();
+
+        storageService.supprimer(document.getCheminStockage());
+    }
+
     // un vrai PDF commence toujours par "%PDF-"
     private boolean estUnPdf(MultipartFile fichier) {
         try (InputStream in = fichier.getInputStream()) {
