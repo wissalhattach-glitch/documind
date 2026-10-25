@@ -37,7 +37,7 @@ public class DocumentChunk {
     private int position;
 
     @JdbcTypeCode(SqlTypes.VECTOR)
-    @Array(length = 1536) // doit être égal à la dimension de ton modèle d'embeddings
+    @Array(length = 1024) // doit être égal à la dimension de ton modèle d'embeddings
     @Column(nullable = false)
     private float[] embedding;
 
