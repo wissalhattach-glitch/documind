@@ -41,7 +41,7 @@ public class IngestionService {
             List<String> pages = pdfExtractor.extraireParPage(
                     storageService.resoudre(document.getCheminStockage()));
             verifierTaille(pages);
-
+            document.setNombrePages(pages.size());
             List<Chunk> chunks = chunkingService.decouper(pages);
             if (chunks.isEmpty()) {
                 throw new FichierInvalideException("Aucun texte trouvé dans le PDF (PDF scanné ?)");
