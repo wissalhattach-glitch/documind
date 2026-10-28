@@ -3,6 +3,7 @@ package com.documind.backend.controller;
 import com.documind.backend.dto.DocumentResponse;
 import com.documind.backend.dto.PageResponse;
 import com.documind.backend.service.DocumentService;
+import com.documind.backend.service.IngestionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -13,12 +14,14 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+
 @RestController
 @RequestMapping("/api/documents")
 @RequiredArgsConstructor
 public class DocumentController {
 
     private final DocumentService documentService;
+    private final IngestionService ingestionService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
@@ -38,6 +41,13 @@ public class DocumentController {
     public DocumentResponse trouver(@PathVariable Long id,
                                     @AuthenticationPrincipal Long userId) {
         return DocumentResponse.de(documentService.trouver(id, userId));
+    }
+
+    // lance l'analyse du PDF : texte, chunks, vecteurs (statut READY ou FAILED)
+    @PostMapping("/{id}/traitement")
+    public DocumentResponse traiter(@PathVariable Long id,
+                                    @AuthenticationPrincipal Long userId) {
+        return DocumentResponse.de(ingestionService.traiter(id, userId));
     }
 
     @DeleteMapping("/{id}")
