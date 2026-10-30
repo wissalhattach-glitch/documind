@@ -58,4 +58,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest()
                 .body(new ErrorResponse(400, "INVALID_PARAMETER", "Paramètre invalide : " + e.getName()));
     }
+    @ExceptionHandler(ServiceIaIndisponibleException.class)
+    public ResponseEntity<ErrorResponse> handleServiceIa(ServiceIaIndisponibleException e) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(new ErrorResponse(503, "AI_UNAVAILABLE", e.getMessage()));
+    }
 }

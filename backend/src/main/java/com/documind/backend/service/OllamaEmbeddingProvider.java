@@ -1,5 +1,6 @@
 package com.documind.backend.service;
 
+import com.documind.backend.exception.ServiceIaIndisponibleException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -62,7 +63,7 @@ public class OllamaEmbeddingProvider implements EmbeddingProvider {
             }
             return reponse.embeddings();
         } catch (RestClientException e) {
-            throw new IllegalStateException(
+            throw new ServiceIaIndisponibleException(
                     "Ollama est injoignable ou le modèle '" + modele + "' n'est pas installé", e);
         }
     }
