@@ -6,6 +6,7 @@ import com.documind.backend.exception.FichierInvalideException;
 import com.documind.backend.repository.DocumentRepository;
 import com.documind.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,10 @@ public class DocumentService {
     private final DocumentRepository documentRepository;
     private final UserRepository userRepository;
     private final StorageService storageService;
+    private final PdfExtractor pdfExtractor;
+
+    @Value("${app.upload.max-pages}")
+    private int maxPages;
 
     @Transactional
     public Document importer(MultipartFile fichier, Long userId) {
@@ -36,11 +41,17 @@ public class DocumentService {
         String nomStocke = storageService.sauvegarder(fichier);
 
         try {
+            int nombrePages = pdfExtractor.compterPages(storageService.resoudre(nomStocke));
+            if (nombrePages > maxPages) {
+                throw new FichierInvalideException("Le PDF dépasse " + maxPages + " pages");
+            }
+
             Document document = Document.builder()
                     .user(userRepository.getReferenceById(userId))
                     .nomFichier(nettoyerNom(fichier.getOriginalFilename()))
                     .cheminStockage(nomStocke)
                     .tailleOctets(fichier.getSize())
+                    .nombrePages(nombrePages)
                     .build();
             return documentRepository.save(document);
         } catch (RuntimeException e) {
