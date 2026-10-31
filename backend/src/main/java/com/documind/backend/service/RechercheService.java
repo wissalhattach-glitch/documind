@@ -1,11 +1,13 @@
 package com.documind.backend.service;
 
 import com.documind.backend.dto.ResultatRecherche;
+import com.documind.backend.repository.ChunkTrouve;
 import com.documind.backend.repository.DocumentChunkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -17,15 +19,23 @@ public class RechercheService {
     private final EmbeddingProvider embeddingProvider;
     private final DocumentChunkRepository chunkRepository;
 
+    // dans tous les documents de l'utilisateur
     @Transactional(readOnly = true)
     public List<ResultatRecherche> rechercher(String question, Long userId) {
         float[] vecteur = embeddingProvider.embedderQuestion(question.strip());
+        return convertir(chunkRepository.rechercherProches(versTexte(vecteur), userId, NOMBRE_RESULTATS));
+    }
 
-        return chunkRepository
-                .rechercherProches(versTexte(vecteur), userId, NOMBRE_RESULTATS)
-                .stream()
-                .map(ResultatRecherche::de)
-                .toList();
+    // seulement dans les documents indiqués
+    @Transactional(readOnly = true)
+    public List<ResultatRecherche> rechercher(String question, Long userId, Collection<Long> documentIds) {
+        float[] vecteur = embeddingProvider.embedderQuestion(question.strip());
+        return convertir(chunkRepository.rechercherProchesDansDocuments(
+                versTexte(vecteur), userId, documentIds, NOMBRE_RESULTATS));
+    }
+
+    private List<ResultatRecherche> convertir(List<ChunkTrouve> chunks) {
+        return chunks.stream().map(ResultatRecherche::de).toList();
     }
 
     // pgvector lit un vecteur sous la forme "[0.1,0.2,0.3]"

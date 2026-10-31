@@ -9,6 +9,11 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     List<Message> findByConversationIdOrderByDateCreationAsc(Long conversationId);
 
-    // derniers messages, pour donner le contexte récent à l'IA
     List<Message> findTop10ByConversationIdOrderByDateCreationDesc(Long conversationId);
+
+    // ordre fiable : l'id augmente à chaque insertion
+    List<Message> findByConversationIdOrderByIdAsc(Long conversationId);
+
+    // les 10 derniers messages, pour donner le contexte récent à l'IA
+    List<Message> findTop10ByConversationIdOrderByIdDesc(Long conversationId);
 }
