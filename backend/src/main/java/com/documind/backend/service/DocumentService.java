@@ -1,12 +1,15 @@
 package com.documind.backend.service;
 
 import com.documind.backend.entity.Document;
+import com.documind.backend.entity.DocumentStatus;
 import com.documind.backend.exception.DocumentIntrouvableException;
 import com.documind.backend.exception.FichierInvalideException;
+import com.documind.backend.exception.TraitementEnCoursException;
 import com.documind.backend.repository.DocumentRepository;
 import com.documind.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,6 +28,7 @@ public class DocumentService {
     private final UserRepository userRepository;
     private final StorageService storageService;
     private final PdfExtractor pdfExtractor;
+    private final ApplicationEventPublisher publisher;
 
     @Value("${app.upload.max-pages}")
     private int maxPages;
@@ -53,11 +57,31 @@ public class DocumentService {
                     .tailleOctets(fichier.getSize())
                     .nombrePages(nombrePages)
                     .build();
-            return documentRepository.save(document);
+            Document enregistre = documentRepository.save(document);
+
+            // l'analyse démarrera en arrière-plan une fois ce document enregistré en base
+            publisher.publishEvent(new DocumentImporteEvent(enregistre.getId(), userId));
+            return enregistre;
         } catch (RuntimeException e) {
             storageService.supprimer(nomStocke);
             throw e;
         }
+    }
+
+    // relance l'analyse (après un échec, ou pour réindexer) ; répond tout de suite
+    @Transactional
+    public Document relancerTraitement(Long id, Long userId) {
+        Document document = documentRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(DocumentIntrouvableException::new);
+
+        if (document.getStatut() == DocumentStatus.PROCESSING) {
+            throw new TraitementEnCoursException();
+        }
+
+        document.marquerEnCours();
+        Document enregistre = documentRepository.save(document);
+        publisher.publishEvent(new DocumentImporteEvent(enregistre.getId(), userId));
+        return enregistre;
     }
 
     @Transactional(readOnly = true)
@@ -75,6 +99,11 @@ public class DocumentService {
     public void supprimer(Long id, Long userId) {
         Document document = documentRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(DocumentIntrouvableException::new);
+
+        // on ne supprime pas un document pendant que l'IA l'analyse
+        if (document.getStatut() == DocumentStatus.PROCESSING) {
+            throw new TraitementEnCoursException();
+        }
 
         documentRepository.delete(document);
         documentRepository.flush();

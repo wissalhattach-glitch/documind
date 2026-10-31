@@ -63,4 +63,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(new ErrorResponse(503, "AI_UNAVAILABLE", e.getMessage()));
     }
+    @ExceptionHandler(TraitementEnCoursException.class)
+    public ResponseEntity<ErrorResponse> handleTraitementEnCours(TraitementEnCoursException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(409, "PROCESSING_IN_PROGRESS", e.getMessage()));
+    }
 }

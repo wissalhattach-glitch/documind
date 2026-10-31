@@ -2,10 +2,12 @@ package com.documind.backend.service;
 
 import com.documind.backend.exception.ServiceIaIndisponibleException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+import java.time.Duration;
 import java.util.List;
 
 @Service
@@ -21,7 +23,13 @@ public class OllamaEmbeddingProvider implements EmbeddingProvider {
     public OllamaEmbeddingProvider(
             @Value("${app.ollama.url:http://localhost:11434}") String url,
             @Value("${app.embedding.model:bge-m3}") String modele) {
-        this.client = RestClient.builder().baseUrl(url).build();
+
+        // on n'attend pas indéfiniment Ollama : après 2 minutes sans réponse, l'appel échoue
+        SimpleClientHttpRequestFactory fabrique = new SimpleClientHttpRequestFactory();
+        fabrique.setConnectTimeout(Duration.ofSeconds(10));
+        fabrique.setReadTimeout(Duration.ofSeconds(120));
+
+        this.client = RestClient.builder().baseUrl(url).requestFactory(fabrique).build();
         this.modele = modele;
     }
 
