@@ -25,7 +25,7 @@ public class GeminiProvider implements LlmProvider {
     public GeminiProvider(
             @Value("${app.llm.gemini.url:https://generativelanguage.googleapis.com}") String url,
             @Value("${gemini.api-key}") String cle,
-            @Value("${app.llm.gemini.model:gemini-3.1-flash-lite}") String modele) {
+            @Value("${app.llm.gemini.model:gemini-3.5-flash-lite}") String modele) {
 
         // on n'attend pas indéfiniment une réponse
         SimpleClientHttpRequestFactory fabrique = new SimpleClientHttpRequestFactory();

@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class GeminiProviderTest {
 
     private static final String URL = "https://generativelanguage.googleapis.com";
-    private static final String MODELE = "gemini-3.1-flash-lite";
+    private static final String MODELE = "gemini-3.5-flash-lite";
 
     // ne demande aucune vraie clé : une fausse clé doit donner une erreur claire
     @Test

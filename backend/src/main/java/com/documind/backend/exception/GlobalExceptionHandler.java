@@ -63,4 +63,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(new ErrorResponse(503, "AI_UNAVAILABLE", e.getMessage()));
     }
+    @ExceptionHandler(ConversationIntrouvableException.class)
+    public ResponseEntity<ErrorResponse> handleConversationIntrouvable(ConversationIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(404, "CONVERSATION_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(DocumentsInvalidesException.class)
+    public ResponseEntity<ErrorResponse> handleDocumentsInvalides(DocumentsInvalidesException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(400, "INVALID_DOCUMENTS", e.getMessage()));
+    }
 }

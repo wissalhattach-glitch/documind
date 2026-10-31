@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -68,5 +69,32 @@ class RagServiceTest {
         ReponseRag reponse = service.repondre("question", 1L);
 
         assertEquals(2, reponse.sources().size());
+    }
+
+    @Test
+    void avecHistoriqueLaQuestionEstReformuleeAvantLaRecherche() {
+        // 1er appel de l'IA : la reformulation ; 2e appel : la réponse
+        when(llm.generer(anyString(), anyString()))
+                .thenReturn("Quelle est la capitale du Maroc ?", "Rabat [1].");
+        when(recherche.rechercher("Quelle est la capitale du Maroc ?", 1L))
+                .thenReturn(List.of(extrait(1, 1, 0.60)));
+
+        ReponseRag reponse = service.repondre("Et sa capitale ?", 1L, List.of(),
+                List.of(new Echange("Utilisateur", "Parle-moi du Maroc")));
+
+        assertTrue(reponse.trouve());
+        verify(recherche).rechercher("Quelle est la capitale du Maroc ?", 1L);
+    }
+
+    @Test
+    void avecDocumentsChoisisLaRechercheEstLimitee() {
+        when(recherche.rechercher("question", 1L, List.of(5L)))
+                .thenReturn(List.of(extrait(1, 1, 0.60)));
+        when(llm.generer(anyString(), anyString())).thenReturn("Réponse [1].");
+
+        ReponseRag reponse = service.repondre("question", 1L, List.of(5L), List.of());
+
+        assertTrue(reponse.trouve());
+        verify(recherche).rechercher("question", 1L, List.of(5L));
     }
 }

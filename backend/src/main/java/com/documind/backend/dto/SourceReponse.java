@@ -1,6 +1,7 @@
 package com.documind.backend.dto;
 
 public record SourceReponse(
+        Long chunkId,
         Long documentId,
         String nomDocument,
         Integer numeroPage,
@@ -15,6 +16,7 @@ public record SourceReponse(
             texte = texte.substring(0, LONGUEUR_MAX) + "…";
         }
         return new SourceReponse(
+                resultat.chunkId(),      
                 resultat.documentId(),
                 resultat.nomDocument(),
                 resultat.numeroPage(),
