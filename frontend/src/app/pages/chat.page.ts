@@ -10,10 +10,11 @@ import {
 } from '../core/conversation-models';
 import { ConversationsService } from '../core/conversations.service';
 import { messageErreur } from '../core/erreurs';
+import { MarkdownPipe } from '../core/markdown.pipe';
 
 @Component({
   selector: 'app-chat',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, MarkdownPipe],
   template: `
     <div class="chat">
       <aside class="cote">
@@ -38,7 +39,11 @@ import { messageErreur } from '../core/erreurs';
           }
           @for (m of messages(); track m.id) {
             <div class="msg" [class.moi]="m.role === 'USER'">
-              <div class="bulle">{{ m.contenu }}</div>
+              @if (m.role === 'ASSISTANT') {
+                <div class="bulle markdown" [innerHTML]="m.contenu | markdown"></div>
+              } @else {
+                <div class="bulle">{{ m.contenu }}</div>
+              }
               @if (m.sources.length) {
                 <details class="sources">
                   <summary>Sources ({{ m.sources.length }})</summary>
