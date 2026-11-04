@@ -74,4 +74,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse(400, "INVALID_DOCUMENTS", e.getMessage()));
     }
+    @ExceptionHandler(TraitementEnCoursException.class)
+    public ResponseEntity<ErrorResponse> handleTraitementEnCours(TraitementEnCoursException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(409, "PROCESSING_IN_PROGRESS", e.getMessage()));
+    }
 }

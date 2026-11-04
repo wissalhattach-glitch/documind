@@ -10,4 +10,18 @@ export class DocumentsService {
   lister() {
     return this.http.get<PageResponse<DocumentResponse>>(`${API_URL}/documents?size=50`);
   }
+
+  importer(fichier: File) {
+    const formulaire = new FormData();
+    formulaire.append('fichier', fichier); // même nom de champ que côté Spring
+    return this.http.post<DocumentResponse>(`${API_URL}/documents`, formulaire);
+  }
+
+  supprimer(id: number) {
+    return this.http.delete<void>(`${API_URL}/documents/${id}`);
+  }
+
+  relancer(id: number) {
+    return this.http.post<DocumentResponse>(`${API_URL}/documents/${id}/traitement`, {});
+  }
 }
