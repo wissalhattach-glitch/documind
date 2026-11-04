@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { EMPTY, catchError, filter, switchMap, timer } from 'rxjs';
 import { AuthService } from '../core/auth.service';
 import { DocumentsService } from '../core/documents.service';
@@ -12,10 +13,11 @@ const TAILLE_MAX = 50 * 1024 * 1024; // 50 Mo, comme côté Spring
 
 @Component({
   selector: 'app-documents',
-  imports: [DatePipe],
+  imports: [DatePipe, RouterLink],
   template: `
     <header class="barre">
       <h1>DocuMind AI</h1>
+      <a routerLink="/chat" class="bouton">Poser une question →</a>
       <button type="button" class="secondaire" (click)="deconnecter()">Se déconnecter</button>
     </header>
 
