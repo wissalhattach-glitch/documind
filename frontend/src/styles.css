@@ -100,6 +100,24 @@ button.danger {
   border: 1px solid var(--erreur);
 }
 
+/* petit bouton avec une icône Font Awesome (renommer, supprimer) */
+button.icone {
+  padding: 0.25rem 0.4rem;
+  background: transparent;
+  color: var(--discret);
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+button.icone:hover {
+  background: var(--fond);
+  color: var(--accent);
+}
+
+button.icone.supprimer:hover {
+  color: var(--erreur);
+}
+
 a {
   color: var(--accent);
 }
@@ -243,6 +261,8 @@ a.bouton.petit {
 .chat {
   display: flex;
   height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .cote {
@@ -265,11 +285,14 @@ a.bouton.petit {
 }
 
 .liste-conv li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
   padding: 0.5rem 0.65rem;
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
-  overflow-wrap: anywhere;
 }
 
 .liste-conv li:hover,
@@ -286,15 +309,41 @@ a.bouton.petit {
   cursor: default;
 }
 
+.titre-conv {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.conv-actions {
+  display: none;
+  gap: 0.1rem;
+  flex-shrink: 0;
+}
+
+.liste-conv li:hover .conv-actions,
+.liste-conv li.active .conv-actions {
+  display: flex;
+}
+
+.titre-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.9rem;
+}
+
 .principal {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
 }
 
 .messages {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 1.25rem;
   display: flex;
@@ -344,6 +393,7 @@ a.bouton.petit {
 }
 
 .saisie {
+  flex-shrink: 0;
   display: flex;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
@@ -354,6 +404,82 @@ a.bouton.petit {
 .saisie textarea {
   flex: 1;
   resize: none;
+}
+
+/* réponses de l'assistant (markdown rendu en HTML) */
+.bulle.markdown {
+  white-space: normal;
+}
+
+.bulle.markdown > :first-child {
+  margin-top: 0;
+}
+
+.bulle.markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.bulle.markdown p {
+  margin: 0.5rem 0;
+}
+
+.bulle.markdown ul,
+.bulle.markdown ol {
+  margin: 0.5rem 0;
+  padding-left: 1.4rem;
+}
+
+.bulle.markdown li {
+  margin: 0.2rem 0;
+}
+
+.bulle.markdown code {
+  background: var(--fond);
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.bulle.markdown h1,
+.bulle.markdown h2,
+.bulle.markdown h3 {
+  font-size: 1rem;
+  margin: 0.75rem 0 0.4rem;
+}
+/* choix des documents */
+.contexte {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.6rem 1.25rem;
+  background: var(--carte);
+  border-bottom: 1px solid var(--bordure);
+  font-size: 0.85rem;
+}
+
+.discret {
+  color: var(--discret);
+}
+
+.choix-docs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  max-height: 5.5rem;
+  overflow-y: auto;
+}
+
+label.doc-choix {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.doc-choix input {
+  padding: 0;
 }
 
 @media (max-width: 43rem) {
