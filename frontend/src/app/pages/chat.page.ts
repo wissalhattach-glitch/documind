@@ -9,8 +9,12 @@ import {
   MessageResponse,
 } from '../core/conversation-models';
 import { ConversationsService } from '../core/conversations.service';
+import { DocumentsService } from '../core/documents.service';
 import { messageErreur } from '../core/erreurs';
 import { MarkdownPipe } from '../core/markdown.pipe';
+import { DocumentResponse } from '../core/models';
+
+const MAX_DOCUMENTS = 20; // limite côté Spring
 
 @Component({
   selector: 'app-chat',
@@ -70,6 +74,39 @@ import { MarkdownPipe } from '../core/markdown.pipe';
       </aside>
 
       <section class="principal">
+        <div class="contexte">
+          @if (courante(); as conv) {
+            <span class="discret">
+              <i class="fa-solid fa-file-pdf"></i>
+              @if (conv.documents.length) {
+                {{ noms(conv) }}
+              } @else {
+                Tous mes documents
+              }
+            </span>
+          } @else {
+            <span class="discret">
+              <i class="fa-solid fa-file-pdf"></i> Documents à interroger (aucun coché = tous) :
+            </span>
+            <div class="choix-docs">
+              @for (d of documentsPrets(); track d.id) {
+                <label class="doc-choix">
+                  <input
+                    type="checkbox"
+                    [checked]="selection().includes(d.id)"
+                    (change)="basculer(d.id)"
+                  />
+                  {{ d.nomFichier }}
+                </label>
+              } @empty {
+                <span class="discret">
+                  Aucun document prêt. Importe un PDF dans « Mes documents ».
+                </span>
+              }
+            </div>
+          }
+        </div>
+
         <div class="messages">
           @if (!courante() && !envoi()) {
             <p class="vide">Pose une question sur tes documents pour commencer.</p>
@@ -125,6 +162,7 @@ import { MarkdownPipe } from '../core/markdown.pipe';
 export class ChatPage {
   protected auth = inject(AuthService);
   private service = inject(ConversationsService);
+  private documents = inject(DocumentsService);
 
   protected conversations = signal<ConversationResume[]>([]);
   protected courante = signal<ConversationDetail | null>(null);
@@ -132,6 +170,10 @@ export class ChatPage {
   protected question = signal('');
   protected envoi = signal(false);
   protected erreur = signal('');
+
+  // choix des documents pour une nouvelle conversation
+  protected documentsPrets = signal<DocumentResponse[]>([]);
+  protected selection = signal<number[]>([]);
 
   // renommage : id de la conversation en cours d'édition et texte saisi
   protected enEdition = signal<number | null>(null);
@@ -143,6 +185,7 @@ export class ChatPage {
 
   constructor() {
     this.charger();
+    this.chargerDocuments();
     // fait défiler vers le bas à chaque nouveau message
     effect(() => {
       this.messages();
@@ -158,10 +201,19 @@ export class ChatPage {
     });
   }
 
+  private chargerDocuments() {
+    this.documents.lister().subscribe({
+      next: (page) => this.documentsPrets.set(page.contenu.filter((d) => d.statut === 'READY')),
+      error: (e: HttpErrorResponse) => this.erreur.set(messageErreur(e)),
+    });
+  }
+
   nouvelle() {
     this.courante.set(null);
     this.messages.set([]);
+    this.selection.set([]);
     this.erreur.set('');
+    this.chargerDocuments(); // un document a pu devenir « Prêt » entre-temps
   }
 
   ouvrir(id: number) {
@@ -173,6 +225,24 @@ export class ChatPage {
       },
       error: (e: HttpErrorResponse) => this.erreur.set(messageErreur(e)),
     });
+  }
+
+  // --- choix des documents ---
+
+  basculer(id: number) {
+    const actuelle = this.selection();
+    if (actuelle.includes(id)) {
+      this.selection.set(actuelle.filter((x) => x !== id));
+    } else if (actuelle.length >= MAX_DOCUMENTS) {
+      this.erreur.set(`${MAX_DOCUMENTS} documents maximum par conversation`);
+    } else {
+      this.erreur.set('');
+      this.selection.set([...actuelle, id]);
+    }
+  }
+
+  noms(conv: ConversationDetail): string {
+    return conv.documents.map((d) => d.nomFichier ?? '').join(', ');
   }
 
   // --- renommer ---
@@ -254,8 +324,8 @@ export class ChatPage {
     if (conv) {
       this.poser(conv.id, texte);
     } else {
-      // pas de conversation ouverte : on en crée une (tous les documents), puis on pose la question
-      this.service.creer().subscribe({
+      // pas de conversation ouverte : on en crée une avec les documents cochés (aucun = tous)
+      this.service.creer(this.selection()).subscribe({
         next: (nouvelle) => {
           this.courante.set(nouvelle);
           this.poser(nouvelle.id, texte);

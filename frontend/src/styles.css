@@ -446,6 +446,41 @@ a.bouton.petit {
   font-size: 1rem;
   margin: 0.75rem 0 0.4rem;
 }
+/* choix des documents */
+.contexte {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.6rem 1.25rem;
+  background: var(--carte);
+  border-bottom: 1px solid var(--bordure);
+  font-size: 0.85rem;
+}
+
+.discret {
+  color: var(--discret);
+}
+
+.choix-docs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  max-height: 5.5rem;
+  overflow-y: auto;
+}
+
+label.doc-choix {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.doc-choix input {
+  padding: 0;
+}
 
 @media (max-width: 43rem) {
   .cote {
