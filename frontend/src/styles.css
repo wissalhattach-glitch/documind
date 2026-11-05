@@ -100,6 +100,24 @@ button.danger {
   border: 1px solid var(--erreur);
 }
 
+/* petit bouton avec une icône Font Awesome (renommer, supprimer) */
+button.icone {
+  padding: 0.25rem 0.4rem;
+  background: transparent;
+  color: var(--discret);
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+button.icone:hover {
+  background: var(--fond);
+  color: var(--accent);
+}
+
+button.icone.supprimer:hover {
+  color: var(--erreur);
+}
+
 a {
   color: var(--accent);
 }
@@ -267,11 +285,14 @@ a.bouton.petit {
 }
 
 .liste-conv li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
   padding: 0.5rem 0.65rem;
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
-  overflow-wrap: anywhere;
 }
 
 .liste-conv li:hover,
@@ -286,6 +307,30 @@ a.bouton.petit {
 .liste-conv li.vide {
   color: var(--discret);
   cursor: default;
+}
+
+.titre-conv {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.conv-actions {
+  display: none;
+  gap: 0.1rem;
+  flex-shrink: 0;
+}
+
+.liste-conv li:hover .conv-actions,
+.liste-conv li.active .conv-actions {
+  display: flex;
+}
+
+.titre-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.9rem;
 }
 
 .principal {

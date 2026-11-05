@@ -18,18 +18,55 @@ import { MarkdownPipe } from '../core/markdown.pipe';
   template: `
     <div class="chat">
       <aside class="cote">
-        <button (click)="nouvelle()">+ Nouvelle conversation</button>
+        <button (click)="nouvelle()"><i class="fa-solid fa-plus"></i> Nouvelle conversation</button>
         <ul class="liste-conv">
           @for (c of conversations(); track c.id) {
             <li [class.active]="c.id === courante()?.id" (click)="ouvrir(c.id)">
-              {{ c.titre || 'Nouvelle conversation' }}
+              @if (enEdition() === c.id) {
+                <input
+                  #champTitre
+                  class="titre-input"
+                  maxlength="200"
+                  [(ngModel)]="titreEdite"
+                  (click)="$event.stopPropagation()"
+                  (keydown.enter)="valider(c)"
+                  (keydown.escape)="annuler()"
+                  (blur)="annuler()"
+                />
+              } @else {
+                <span class="titre-conv">{{ c.titre || 'Nouvelle conversation' }}</span>
+                <span class="conv-actions">
+                  <button
+                    type="button"
+                    class="icone"
+                    title="Renommer"
+                    aria-label="Renommer"
+                    (click)="commencer(c, $event)"
+                  >
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="icone supprimer"
+                    title="Supprimer"
+                    aria-label="Supprimer"
+                    (click)="supprimerConv(c, $event)"
+                  >
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </span>
+              }
             </li>
           } @empty {
             <li class="vide">Aucune conversation</li>
           }
         </ul>
-        <a routerLink="/documents" class="bouton">← Mes documents</a>
-        <button class="secondaire petit" (click)="auth.deconnecter()">Déconnexion</button>
+        <a routerLink="/documents" class="bouton">
+          <i class="fa-solid fa-arrow-left"></i> Mes documents
+        </a>
+        <button class="secondaire petit" (click)="auth.deconnecter()">
+          <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
+        </button>
       </aside>
 
       <section class="principal">
@@ -77,7 +114,9 @@ import { MarkdownPipe } from '../core/markdown.pipe';
             [disabled]="envoi()"
             (keydown.enter)="touche($event)"
           ></textarea>
-          <button type="submit" [disabled]="envoi() || !question().trim()">Envoyer</button>
+          <button type="submit" [disabled]="envoi() || !question().trim()">
+            <i class="fa-solid fa-paper-plane"></i> Envoyer
+          </button>
         </form>
       </section>
     </div>
@@ -94,7 +133,12 @@ export class ChatPage {
   protected envoi = signal(false);
   protected erreur = signal('');
 
+  // renommage : id de la conversation en cours d'édition et texte saisi
+  protected enEdition = signal<number | null>(null);
+  protected titreEdite = signal('');
+
   private fin = viewChild<ElementRef<HTMLElement>>('fin');
+  private champTitre = viewChild<ElementRef<HTMLInputElement>>('champTitre');
   private compteur = -1; // ids temporaires négatifs pour les messages ajoutés côté client
 
   constructor() {
@@ -130,6 +174,64 @@ export class ChatPage {
       error: (e: HttpErrorResponse) => this.erreur.set(messageErreur(e)),
     });
   }
+
+  // --- renommer ---
+
+  commencer(c: ConversationResume, event: Event) {
+    event.stopPropagation(); // ne pas ouvrir la conversation
+    this.titreEdite.set(c.titre ?? '');
+    this.enEdition.set(c.id);
+    setTimeout(() => {
+      const champ = this.champTitre()?.nativeElement;
+      champ?.focus();
+      champ?.select();
+    });
+  }
+
+  valider(c: ConversationResume) {
+    const titre = this.titreEdite().trim();
+    if (!titre || titre === c.titre) {
+      this.annuler();
+      return;
+    }
+    this.erreur.set('');
+    this.service.renommer(c.id, titre).subscribe({
+      next: (maj) => {
+        this.conversations.update((l) => l.map((x) => (x.id === maj.id ? maj : x)));
+        this.courante.update((d) => (d && d.id === maj.id ? { ...d, titre: maj.titre } : d));
+        this.enEdition.set(null);
+      },
+      error: (e: HttpErrorResponse) => {
+        this.erreur.set(messageErreur(e));
+        this.enEdition.set(null);
+      },
+    });
+  }
+
+  annuler() {
+    this.enEdition.set(null);
+  }
+
+  // --- supprimer ---
+
+  supprimerConv(c: ConversationResume, event: Event) {
+    event.stopPropagation();
+    if (!confirm(`Supprimer la conversation « ${c.titre || 'Nouvelle conversation'} » ?`)) {
+      return;
+    }
+    this.erreur.set('');
+    this.service.supprimer(c.id).subscribe({
+      next: () => {
+        this.conversations.update((l) => l.filter((x) => x.id !== c.id));
+        if (this.courante()?.id === c.id) {
+          this.nouvelle();
+        }
+      },
+      error: (e: HttpErrorResponse) => this.erreur.set(messageErreur(e)),
+    });
+  }
+
+  // --- poser une question ---
 
   // Entrée envoie, Maj+Entrée fait un retour à la ligne
   touche(event: Event) {
