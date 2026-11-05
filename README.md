@@ -19,7 +19,7 @@ Application web full-stack pour **importer des PDF et les interroger en langage 
 
 | Connexion | Mes documents |
 |---|---|
-| ![Authentification](docs/images/authentification.png) | ![Documents](docs/images/documents.png) |
+| ![Authentification](docs/images/Authentification.png) | ![Documents](docs/images/documents.png) |
 
 ## Architecture
 
